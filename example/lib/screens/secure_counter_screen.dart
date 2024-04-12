@@ -45,8 +45,8 @@ class _SecureCounterScreenState extends State<SecureCounterScreen> {
           _awsSigV4Client = AwsSigV4Client(
             credentials.accessKeyId!,
             credentials.secretAccessKey!,
-            apiEndpoint,
-            region: awsRegion,
+            Endpoint,
+            region: Region,
             sessionToken: credentials.sessionToken,
           );
 

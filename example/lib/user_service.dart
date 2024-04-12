@@ -51,7 +51,7 @@ class UserService {
       return null;
     }
 
-    credentials = CognitoCredentials(cognitoIdentityPoolId, userPool);
+    credentials = CognitoCredentials(IdentityPoolId, userPool);
     await credentials!.getAwsCredentials(_session?.getIdToken().getJwtToken());
     return credentials!;
   }
