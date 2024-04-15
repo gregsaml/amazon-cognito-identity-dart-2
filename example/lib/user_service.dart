@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:amazon_cognito_identity_dart_2/cognito.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 
 import 'user.dart';
@@ -15,8 +16,8 @@ class UserService {
 
   /// Initiate user session from local storage if present
   Future<bool> init() async {
-    // final prefs = await SharedPreferences.getInstance();
-    // final storage = Storage(prefs);
+    final prefs = await SharedPreferences.getInstance();
+    final storage = Storage(prefs);
     final storage = CognitoMemoryStorage();
     _userPool.storage = storage;
 
@@ -28,12 +29,24 @@ class UserService {
     return _session?.isValid() ?? false;
   }
 
+  Future refreshSession(String? refreshToken) async {
+    _cognitoUser = CognitoUser('', _userPool, storage: _userPool.storage);
+    final cognitoRefreshToken = await CognitoRefreshToken(refreshToken);
+    final storage = CognitoMemoryStorage();
+    _userPool.storage = storage;
+    final newSession = _cognitoUser?.refreshSession(cognitoRefreshToken);
+
+    _cognitoUser!.cacheTokens();
+    return newSession;
+  }
+
   /// Get existing user from session with his/her attributes
   Future<User?> getCurrentUser() async {
     if (_cognitoUser == null || _session == null) {
       return null;
     }
     if (!_session!.isValid()) {
+      print('${_session!.isValid()}');
       return null;
     }
     final attributes = await _cognitoUser?.getUserAttributes();
@@ -119,7 +132,8 @@ class UserService {
     final userAttributes = [
       AttributeArg(name: 'name', value: name),
     ];
-    data = await _userPool.signUp(email, password, userAttributes: userAttributes);
+    data =
+        await _userPool.signUp(email, password, userAttributes: userAttributes);
 
     final user = User();
     user.email = email;

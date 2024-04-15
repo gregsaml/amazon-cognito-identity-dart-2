@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:amazon_cognito_identity_dart_2/cognito.dart';
 import 'package:flutter/material.dart';
 import 'package:secure_counter/secrets.dart';
+import 'package:secure_counter/user_service.dart';
 
 class RefreshTokenLogin extends StatefulWidget {
   const RefreshTokenLogin({Key? key}) : super(key: key);
@@ -13,23 +14,27 @@ class RefreshTokenLogin extends StatefulWidget {
 
 class _RefreshTokenLoginState extends State<RefreshTokenLogin> {
   TextEditingController _controller = TextEditingController();
-  final cognitoUser =
-      CognitoUser('bc222d26-ec41-40b1-a177-981adc75dc92', userPool);
-
-@override
+      final _userService = UserService(userPool);
+  bool _isAuthenticated = false;
+  @override
   void initState() {
-// checkTokenValidity(cognitoUser.getCognitoUserSession().);
+    // tokenExpiration();
     super.initState();
   }
 
+  Future<UserService> _getValues() async {
+    await _userService.init();
+    _isAuthenticated = await _userService.checkAuthenticated();
+    return _userService;
+  }
 
   bool checkTokenValidity(String token) {
-    if (DateTime.now().add(Duration(minutes: 5)).isBefore(
+    if (DateTime.now().add(Duration(minutes: 3)).isBefore(
           tokenExpiration(token),
-        )) {
+        )) print('token is valid');
+    {
       return true;
     }
-    return false;
   }
 
   DateTime tokenExpiration(String token) {
@@ -69,14 +74,14 @@ class _RefreshTokenLoginState extends State<RefreshTokenLogin> {
 
   void login(String refreshtoken) async {
     try {
-      debugPrint('cognitoUser: ${cognitoUser.client}');
-      final cognitoRefreshToken = await CognitoRefreshToken(refreshtoken);
-      debugPrint('cognitoRefreshToken: ${cognitoRefreshToken.token}');
-      final newSession = await cognitoUser.refreshSession(cognitoRefreshToken);
-      debugPrint('newSession: ${newSession}');
-    cognitoUser.cacheTokens();
+      // final cognitoUser = CognitoUser(
+      //     'bc222d26-ec41-40b1-a177-981adc75dc92', userPool,
+      //     storage: storage);
 
-      print('  ${newSession?.isValid()}');
+      debugPrint('cognitoUser: ${_userService}');
+      final newsession = _userService.refreshSession(refreshtoken);
+      
+      debugPrint('newSession: ${newsession}');
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -112,12 +117,19 @@ class _RefreshTokenLoginState extends State<RefreshTokenLogin> {
               ElevatedButton(
                   onPressed: () async {
                     try {
-                      print(
-                          '${cognitoUser.username} ${cognitoUser.getSession().toString()}');
-                      cognitoUser.username;
+                      // final user = await usersev
+                      // debugPrint('user: ${user}');
+                      // final session = await user?.getSession();
+                      // debugPrint('session: ${session}');
+                      final teck = await _userService.init();
+                      debugPrint('teck: ${teck}');
+                      // usersev.getCurrentUser();
 
-                      // _session =
-                      //     await cognitoUser.authenticateUser(authDetails);
+                      // print('\n${cognitoUser.getSignInUserSession()!.refreshToken!.token}\n test');
+                      //  print(
+                      // '${cognitoUser.username} ${cognitoUser.getSignInUserSession()!.accessToken.jwtToken}');
+
+                      //  checkTokenValidity(cognitoUser.getSignInUserSession()!.accessToken.jwtToken!);
                     } catch (e) {
                       print(e);
                     }

@@ -1363,4 +1363,5 @@ class CognitoUser {
       throw Exception('User is not authenticated');
     }
   }
+
 }
